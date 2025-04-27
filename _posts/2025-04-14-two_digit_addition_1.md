@@ -5,15 +5,15 @@ title: Two Digit Addition Trainer
 
 I've had the idea for a while to build a math trainer application with the aim of producing questions that the user would get right, on average, about 80% of the time. Further, I wanted to be able to generate questions within defined ranges - no hand-creating questions!
 
-To keep things simple, the first iteration of my application would produce 2 digit addition problems with two operands. For example, `31 + 45`. Or `95 + 01`.
+To keep things simple, the first iteration of my application would produce 2 digit addition problems with two operands. For example, `31 + 45`, or `95 + 01`.
 
 This might seem simple to predict - why not just scale the numbers up and down according to how many questions the user is getting right? Larger numbers are generally harder to compute. But I wanted a more granular capability - `50 + 50`, for example, is using two operands that are bigger than `18 + 37`, but nobody would argue the latter is more difficult. 
 
-Sure, I could hand-create rules, like "numbers with 0s in the first digit are easier," but I wanted to develop a way to create randomized problems for a wide variety of types of operations without having to hand-build each one. What makes a set of operands more difficult to subtract is going to be different from, say, multiplication - and this is before I even get near the business of having multi-operand problems!
+Sure, I could hand-create rules, like "numbers with 0s in the first digit are easier," but I wanted to develop a way to create randomized problems for a wide variety of operations without having to hand-build each one. What makes a set of operands more difficult to subtract is going to be different from, say, multiplication - and this is before even getting near multi-operand problems!
 
 ### Basic Application & Data Setup
 
-I won't go into the design of the actual quizzer application too much here; instead I want to focus on the data. But I did create a simple framework that is both flexible enough to work as a CLI application, and also serve a REST API that could eventually serve a visual, web-based frontend. Here is what the simple CLI variant looks like:
+I won't go into the design of the actual quizzer application too much here; instead I want to focus on the data. In short, I created a simple framework that is both flexible enough to work as a CLI application, and also serve a REST API that could eventually drive a visual, web-based frontend. The current CLI is very minimal; just enough to get the job done:
 
 <div style="margin-top: 4rem;"></div>
 
@@ -26,7 +26,7 @@ I won't go into the design of the actual quizzer application too much here; inst
 <div style="margin-top: 4rem;"></div>
 
 
-Now, these math problems are simple enough that, given enough time, most of us would solve these with 100% accuracy. So, a time limit of 5 seconds (ajustable as configuration) is given to ensure that the user will get enough questions wrong. I chose to, for now, not cut off the question when the time runs out - the full time to complete a question could be useful data! Instead, I silently mark the question incorrect if it wasn't answered within the time limit.
+2-digit addition problems are simple enough that, given enough time, users with enough basic arithmetic experience could acheive close to 100% accuracy. So, a time limit of 5 seconds (ajustable as configuration) was enforced to ensure that the user would get enough questions wrong. I chose to, for now, not cut off the question when the time runs out - the full time to complete a question could be useful data! Instead, I silently marked the question incorrect if it wasn't answered within the time limit.
 
 The data for collected questions is structured like this:
 

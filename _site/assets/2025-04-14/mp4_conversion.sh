@@ -1,1 +1,0 @@
-ffmpeg -i cli_demo.mov -vcodec h264 -acodec aac cli_demo.mp4

@@ -193,4 +193,55 @@ However, there are still some problems. First, the NN model only manages to deli
 
 Second, this model still delivers a very unsatisfying distribution of operand combinations. It's clear from the sampled model output above that we're only ever going to get problems that use operand combinations near that white 80% region. The entire rest of the parameter space is ignored! Surely there are a multitude of combinations in those deep green and blue portions of the space that are, in reality, near the 80% mark.
 
-### Improving Features
+### Feature Engineering!
+
+Eventually I started to realize that my formulation of the problem might be holding my modeling back. I had been feeding the model *numbers*, but was that really the right modality? When we add, we operate at a digit level. Adding `89 + 12`, we're all grabbing that `9` and `2` and summing them, carrying over the `1`. What makes most 2-digit problems any challenge to solve in 5 seconds is really the *carry*. It's why `68 + 37` is harder than `68 + 31`; the latter has no carry. And it's what makes certain problems quick despite their size, like `75 + 35` or `37 + 33`, is that their ones-columns "click" together into 10.
+
+As mentioned earlier, I have no intention of handling these cases manually; I need the model to pick up these patterns on its own. The only way to do that is to make the model *digit aware*. Instead of feeding the model numbers, I'm feeding it digits!
+
+Thus, instead of `operand_1` and `operand_2`, I re-engineered those features into `operand_1_digit_1`, `operand_1_digit_2`, `operand_2_digit_1`, and `operand_2_digit_2`. `35` and `75` becomes `3`, `5`, `7`, and `5`.
+
+Instead of re-architecting the stored data into digits, I short-cutted to just transforming the numbers into digits right before they were fed into the model. As a fun result, I can still use the same heatmap to plot the 4-parameter input space in two dimensions. Starting again with a linear model:
+
+<div style="margin-top: 4rem;"></div>
+
+![digits linear](/assets/2025-04-14/digits_linear.png)
+
+<div style="margin-top: 4rem;"></div>
+
+As someone newer to modeling, this was a *fascinating* visualization! I now had a grid of grids, each mini-grid serving as a model for every increment of 10. With the expanded features, the model now picks up on the pattern that higher ones-column digits make the problem harder, independently of the tens-column digits. For example, `29 + 19` is properly predicted as difficult, while `25 + 25` is solidly easy.
+
+Now, with predictions again falling along the white regions of this space, the variation of outputted questions is much higher!
+
+The model's accuracy is also respectably higher: about 75%, a solid improvement.
+
+Finally, what about combining the digit-based parameters with a neural net?
+
+<div style="margin-top: 4rem;"></div>
+
+![digits nn](/assets/2025-04-14/digits_nn.png)
+
+<div style="margin-top: 4rem;"></div>
+
+While I got the same organic curve in each of these "mini-plots" that probably gives more varied outputs than the linear, again I'm failing to beat the linear model, tying it with 75%. Is this some sort of convergence due to the low amount of data, or the simplicity of the problem? I'm not sure, but it's something I'll look out for in future modeling.
+
+There are clearly improvements to seek here - sticking out to me is that sparse cluster of green dots in the top right, which did not manage to get that region categorized as more likely to be answered correctly. 
+
+
+# Further Improvement
+
+Getting more data is always a solution, and would probably help my modeling accuracy more than anything; however, this case represents a very minimal parameter space. These problems will only get more complex, and how efficient would it be to gather more data than the 360 / 10,000 ratio I've gotten here?
+
+During an earlier iteration of the project, I experimented with training the model, answering questions from the new model, then re-training on that. While I moved on to training from purely random data for experimental consistentcy, there is probably value in re-training from modeled data to reduce the parameter space and gather more information around relevant spaces.
+
+The most useful dimension to add that I have immediate access to is time. This would give the model another dimension of difficulty to classify with instead of just the digits. This could compensate for easy questions I got wrong due to hasty answering, and give more difficulty to questions I got right just barely in time.
+
+Another potentially useful dimension is the question's time or position within a particular sessions and sets. I didn't get too much into it in this post, but questions are delivered in "sets" of 10 (adjustable) and within the context of a sitting - a session. As a user is likely to get fatigued as the session goes on, it is probably useful to track what position a question is within a set or session, either by time or an ordinal position (e.g. question #1, #2, etc.). This is a practice I saw used by default in fMRI studies when I was working for UNC, so I know it is an imporant feature to eventually control for.
+
+
+### Future Work
+
+- Expanding to handle more than two operands, other operators like `-`, `*`, and `/`, and combinations of both
+- Producing problems that use multiple operands, operators - will need order of operations handling
+- Updating the model dynamically as the user takes the quiz; every 10 questions, or even after every question
+- 

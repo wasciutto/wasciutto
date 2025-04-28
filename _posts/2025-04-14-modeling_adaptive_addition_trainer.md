@@ -1,19 +1,21 @@
 ---
 layout: post
-title: Two Digit Addition Trainer
+title: Modeling an Adapative Addition Trainer
 ---
 
-I've had the idea for a while to build a math trainer application with the aim of producing questions that the user would get right, on average, about 80% of the time. Further, I wanted to be able to generate questions within defined ranges - no hand-creating questions!
+About three years ago, I heard about some findings from a [Nature Communciations paper](https://www.nature.com/articles/s41467-019-12552-4) proposing that the optimal success rate for learning was about 85%.
 
-To keep things simple, the first iteration of my application would produce 2 digit addition problems with two operands. For example, `31 + 45`, or `95 + 01`.
+This gave me the inspiration to start building a training application framework that operated on this principle, randomly generating problems that the user would get right about 85% of the time (actually, I misremembered the exact value and used an 80% threshold instead - but close enough). The application would utilize a model built from previously answered questions to generate new problems that met this threshold. My idea was that staying within this "sweetspot" of difficulty would keep a user more engaged with the trainer.
 
-This might seem simple to predict - why not just scale the numbers up and down according to how many questions the user is getting right? Larger numbers are generally harder to compute. But I wanted a more granular capability - `50 + 50`, for example, is using two operands that are bigger than `18 + 37`, but nobody would argue the latter is more difficult. 
+To keep things simple, I decided to make the first iteration of my application a 2-digit addition trainer, with the goal of generating single operator addition problems that the user had an 80% chance of getting correct. For example, `31 + 45`, or `95 + 23`.
 
-Sure, I could hand-create rules, like "numbers with 0s in the first digit are easier," but I wanted to develop a way to create randomized problems for a wide variety of operations without having to hand-build each one. What makes a set of operands more difficult to subtract is going to be different from, say, multiplication - and this is before even getting near multi-operand problems!
+This might initially seem trivial - why not just scale the numbers up and down according to how many questions the user is getting right? Larger numbers are generally harder to compute. But I wanted a more granular capability - `50 + 50`, for example, uses two operands that are larger than `18 + 37`, but nobody would argue the latter is more difficult. 
+
+Sure, I could hand-create rules, like "numbers with `0` in the ones column are easier," but I wanted to develop a flexible, scalable method of generating randomized problems for a wide variety of operations without having to hand-build each one. What makes a set of operands more difficult to subtract is going to be different from, say, multiplication - and that's well before getting into multi-operand problems!
 
 ### Basic Application & Data Setup
 
-I won't go into the design of the actual quizzer application too much here; instead I want to focus on the data. In short, I created a simple framework that is both flexible enough to work as a CLI application, and also serve a REST API that could eventually drive a visual, web-based frontend. The current CLI is very minimal; just enough to get the job done:
+To keep the focus on the data & modeling, I won't get too much into the design of the actual training application here (perhaps a future post). In short, I created a simple framework that is both flexible enough to work as a CLI application, and also serve a REST API that could eventually drive a visual, web-based frontend. The current CLI is very minimal; just enough to get the job done:
 
 <div style="margin-top: 4rem;"></div>
 
@@ -26,9 +28,9 @@ I won't go into the design of the actual quizzer application too much here; inst
 <div style="margin-top: 4rem;"></div>
 
 
-2-digit addition problems are simple enough that, given enough time, users with enough basic arithmetic experience could acheive close to 100% accuracy. So, a time limit of 5 seconds (ajustable as configuration) was enforced to ensure that the user would get enough questions wrong. I chose to, for now, not cut off the question when the time runs out - the full time to complete a question could be useful data! Instead, I silently marked the question incorrect if it wasn't answered within the time limit.
+A glaring initial problem is that 2-digit addition problems are simple enough that, given enough time, users with basic arithmetic experience can acheive close to 100% accuracy. So, a time limit of 5 seconds (ajustable as configuration) was enforced to ensure that the user would get enough questions wrong, and thus make this goal of 80% accuracy at all possible. I chose to, for now, not cut off the question when the time runs out - the full time to complete a question could be useful data! Instead, I silently marked the question as "incorrect" if it wasn't answered within the time limit.
 
-The data for collected questions is structured like this:
+I structured the data collected for answered questions like this:
 
 <div style="margin-top: 4rem;"></div>
 
@@ -36,18 +38,20 @@ The data for collected questions is structured like this:
 
 <div style="margin-top: 4rem;"></div>
 
-My training framework uses the concept of "Trainers" to define classes that create parameters for questions. In this case, I have `AdditionTrainer` classes that output two parameters, which are the first and second operand of the addition problem. To create completely random questions, I always provide a randomized trainer to serve as a foundation for more sophisticated trainers.
+(there's a few extra fields captured too, like timestamps)
 
-The next thing I needed to do was collect some data so that I could attempt to make inferences based on my own response behavior. 
+My training framework uses classes I named "Trainers" that define how parameters are generated for a particular type of problem template. In this case, I setup an `AdditionTrainer` class with two parameters, which are the first and second operand of the addition problem. Using this as a base, I then created a `RandomAdditionTrainer` class that generates random parameters for the addition problem (in this case, the two operators) The randomized trainer serves as a crucial foundation for more sophisticated trainers.
+
+Next, I needed to collect some data to work with!
 
 
 ### Gathering Data
 
-Using the randomized trainer, I completed the somewhat grueling (but educational) process of grinding out hundreds of two-digit addition questions.
+Using the `RandomAdditionTrainer`, I completed the somewhat grueling (but educational) process of grinding out hundreds of two-digit addition questions.
 
-How many should I answer? Here we get into the idea of "parameter space" - how many possible two-digit addition questions are there? Including zero, that's 100 x 100 for 10,000 possible addition questions. So, even in a relatively simple scenario, the number of possible questions is high enough that I can't explore the entire space in a reasonable amount of time (which is good, or this wouldn't be interesting!).
+How many should I answer? Here we get into the idea of this problem's *parameter space*, which is the answer to the question: what are all of the possible (positive) two-digit addition problems? Including zero, that's 100 x 100, for 10,000 possible addition questions. As you can imagine, that's too many combinations for me to cover in a reasonable amount of time, even for this relatively simple problem. (which is good, or this wouldn't be interesting!).
 
-I decided to gather 360 answers - this was based more off of my own endurance and what I figured to be a rough representative sample for 10,000 data points than anything statistically premeditated. Turns out (in retrospect) that gets us pretty close to 95% confidence, which sounds great to me for a demo!
+I decided to gather 360 answers - admittedly, this was based more off of my own stamina than anything statistically premeditated. It turns out (in retrospect) that this gets us pretty close to 95% confidence for representing the population size of 10,000 possible problems, which sounds great to me for a demo!
 
 Here's the result of my training:
 
@@ -57,7 +61,7 @@ Here's the result of my training:
 
 <div style="margin-top: 4rem;"></div>
 
-The results lined up well with intuition. The biggest cluster of incorrect questions occurs where there are two large operands. Answers at the low end of either axis are likely to be correct (e.g. `0 + 99` is easy). What kind of inferences could I make from this data?
+The results lined up well with intuition. The biggest cluster of incorrect questions occured where there are two large operands. Answers at the low end of either axis are likely to be correct (e.g. `0 + 99` is easy). What kind of inferences could I make from this data?
 
 ### Developing a Modeling Strategy
 
@@ -228,15 +232,17 @@ While I got the same organic curve in each of these "mini-plots" that probably g
 There are clearly improvements to seek here - sticking out to me is that sparse cluster of green dots in the top right, which did not manage to get that region categorized as more likely to be answered correctly. 
 
 
-# Further Model Improvement
+### Ideas for Model Improvement
 
 Getting more data is always a solution, and would probably help my modeling accuracy more than anything; however, this case represents a very minimal parameter space. These problems will only get more complex, and how efficient would it be to gather more data than the 360 / 10,000 ratio I've gotten here?
 
 During an earlier iteration of the project, I experimented with training the model, answering questions from the new model, then re-training on that. While I moved on to training from purely random data for experimental consistentcy, there is probably value in re-training from modeled data to reduce the parameter space and gather more information around relevant spaces.
 
-The most useful dimension to add that I have immediate access to is time. This would give the model another dimension of difficulty to classify with instead of just the digits. This could compensate for easy questions I got wrong due to hasty answering, and give more difficulty to questions I got right just barely in time.
+The most useful dimension to add that I have immediate access to is response time. This would give the model another dimension of difficulty to classify with instead of just the digits. This could compensate for easy questions I got wrong due to hasty answering, and give more difficulty to questions I got right just barely in time.
 
 Another potentially useful dimension is the question's time or position within a particular sessions and sets. I didn't get too much into it in this post, but questions are delivered in "sets" of 10 (adjustable) and within the context of a sitting - a session. As a user is likely to get fatigued as the session goes on, it is probably useful to track what position a question is within a set or session, either by time or an ordinal position (e.g. question #1, #2, etc.). This is a practice I saw used by default in fMRI studies when I was working for UNC, so I know it is an imporant feature to eventually control for.
+
+Finally, the effect of a user learning the task over time should probably be taken into account; perhaps by using each record's general timestamp. Questions that were marked wrong a relatively long time ago in the answer set would certainly be "stale," not reflecting the user's more practiced arithmetic skills. I would love to eventually get into some timeseries-based modeling, where more recently answered questions are weighted much more heavily than older ones; perhaps experimenting with RNNs or LTSMs.
 
 
 ### Future Plans

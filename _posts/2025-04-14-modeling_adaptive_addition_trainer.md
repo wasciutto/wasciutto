@@ -3,7 +3,7 @@ layout: post
 title: Modeling an Adapative Addition Trainer
 ---
 
-About three years ago, I heard about some findings from a [Nature Communciations paper](https://www.nature.com/articles/s41467-019-12552-4) proposing that the optimal success rate for learning was about 85%.
+About three years ago, I heard about some findings from a [Nature Communciations paper](https://www.nature.com/articles/s41467-019-12552-4) proposing that the optimal success rate for any learning task is about 85%.
 
 This gave me the inspiration to start building a training application framework that operates on this principle, randomly generating problems that the user would get right about 85% of the time. The application would utilize a model built from previously answered questions to generate new problems that meet this threshold. My idea was that staying within this "sweetspot" of difficulty would keep a user more engaged with the trainer.
 

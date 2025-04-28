@@ -5,9 +5,9 @@ title: Modeling an Adapative Addition Trainer
 
 About three years ago, I heard about some findings from a [Nature Communciations paper](https://www.nature.com/articles/s41467-019-12552-4) proposing that the optimal success rate for learning was about 85%.
 
-This gave me the inspiration to start building a training application framework that operated on this principle, randomly generating problems that the user would get right about 85% of the time (actually, I misremembered the exact value and used an 80% threshold instead - but close enough). The application would utilize a model built from previously answered questions to generate new problems that met this threshold. My idea was that staying within this "sweetspot" of difficulty would keep a user more engaged with the trainer.
+This gave me the inspiration to start building a training application framework that operates on this principle, randomly generating problems that the user would get right about 85% of the time. The application would utilize a model built from previously answered questions to generate new problems that meet this threshold. My idea was that staying within this "sweetspot" of difficulty would keep a user more engaged with the trainer.
 
-To keep things simple, I decided to make the first iteration of my application a 2-digit addition trainer, with the goal of generating single operator addition problems that the user had an 80% chance of getting correct. For example, `31 + 45`, or `95 + 23`.
+To keep things simple, I decided to make the first iteration of my application a 2-digit addition trainer, with the goal of generating single operator addition problems that the user had an 85% chance of getting correct. For example, `31 + 45`, or `95 + 23`.
 
 This might initially seem trivial - why not just scale the numbers up and down according to how many questions the user is getting right? Larger numbers are generally harder to compute. But I wanted a more granular capability - `50 + 50`, for example, uses two operands that are larger than `18 + 37`, but nobody would argue the latter is more difficult. 
 
@@ -65,7 +65,7 @@ The results lined up well with intuition. The biggest cluster of incorrect quest
 
 ### Developing a Modeling Strategy
 
-First, I had to address the question of how exactly to generate questions that the "user will get correct 80% of the time." How could this be broken down into a data problem?
+First, I had to address the question of how exactly to generate questions that the user would get correct 85% of the time (actually, I misremembered the exact value and used an 80% threshold for the following experiment instead - but close enough). How could this be broken down into a data problem?
 
 My (naive) initial thought was to give the "correct" / "incorrect" (`1` or `0`) as my input (`X`) value, and have it produces two `Y` values: `operand_1` and `operand_2`. I could then give a fractional input value of `.8` as an input to represent an 80% chance of the question being correct, and get two operands that fit to this number as an output. 
 

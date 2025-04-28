@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>Two Digit Addition Trainer | wasciutto</title>
+<meta name="generator" content="Jekyll v4.3.4" />
+<meta property="og:title" content="Two Digit Addition Trainer" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="I’ve had the idea for a while to build a math trainer application with the aim of producing questions that the user would get right, on average, about 80% of the time. Further, I wanted to be able to generate questions within defined ranges - no hand-creating questions!" />
+<meta property="og:description" content="I’ve had the idea for a while to build a math trainer application with the aim of producing questions that the user would get right, on average, about 80% of the time. Further, I wanted to be able to generate questions within defined ranges - no hand-creating questions!" />
+<link rel="canonical" href="http://localhost:4000/2025/04/14/two_digit_addition_1.html" />
+<meta property="og:url" content="http://localhost:4000/2025/04/14/two_digit_addition_1.html" />
+<meta property="og:site_name" content="wasciutto" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2025-04-14T00:00:00-04:00" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="Two Digit Addition Trainer" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BlogPosting","dateModified":"2025-04-14T00:00:00-04:00","datePublished":"2025-04-14T00:00:00-04:00","description":"I’ve had the idea for a while to build a math trainer application with the aim of producing questions that the user would get right, on average, about 80% of the time. Further, I wanted to be able to generate questions within defined ranges - no hand-creating questions!","headline":"Two Digit Addition Trainer","mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/2025/04/14/two_digit_addition_1.html"},"url":"http://localhost:4000/2025/04/14/two_digit_addition_1.html"}</script>
+<!-- End Jekyll SEO tag -->
+<link rel="stylesheet" href="/assets/main.css"><link type="application/atom+xml" rel="alternate" href="http://localhost:4000/feed.xml" title="wasciutto" /></head>
+<body><header class="site-header" role="banner">
+
+  <div class="wrapper"><a class="site-title" rel="author" href="/">wasciutto</a><nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger"><a class="page-link" href="/blue_dusk.html">Blue Dusk</a><a class="page-link" href="/about/">About</a></div>
+      </nav></div>
+</header>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="post-header">
+    <h1 class="post-title p-name" itemprop="name headline">Two Digit Addition Trainer</h1>
+    <p class="post-meta">
+      <time class="dt-published" datetime="2025-04-14T00:00:00-04:00" itemprop="datePublished">Apr 14, 2025
+      </time></p>
+  </header>
+
+  <div class="post-content e-content" itemprop="articleBody">
+    <p>I’ve had the idea for a while to build a math trainer application with the aim of producing questions that the user would get right, on average, about 80% of the time. Further, I wanted to be able to generate questions within defined ranges - no hand-creating questions!</p>
+
+<p>To keep things simple, the first iteration of my application would produce 2 digit addition problems with two operands. For example, <code class="language-plaintext highlighter-rouge">31 + 45</code>, or <code class="language-plaintext highlighter-rouge">95 + 01</code>.</p>
+
+<p>This might seem simple to predict - why not just scale the numbers up and down according to how many questions the user is getting right? Larger numbers are generally harder to compute. But I wanted a more granular capability - <code class="language-plaintext highlighter-rouge">50 + 50</code>, for example, is using two operands that are bigger than <code class="language-plaintext highlighter-rouge">18 + 37</code>, but nobody would argue the latter is more difficult.</p>
+
+<p>Sure, I could hand-create rules, like “numbers with 0s in the first digit are easier,” but I wanted to develop a way to create randomized problems for a wide variety of operations without having to hand-build each one. What makes a set of operands more difficult to subtract is going to be different from, say, multiplication - and this is before even getting near multi-operand problems!</p>
+
+<h3 id="basic-application--data-setup">Basic Application &amp; Data Setup</h3>
+
+<p>I won’t go into the design of the actual quizzer application too much here; instead I want to focus on the data. In short, I created a simple framework that is both flexible enough to work as a CLI application, and also serve a REST API that could eventually drive a visual, web-based frontend. The current CLI is very minimal; just enough to get the job done:</p>
+
+<div style="margin-top: 4rem;"></div>
+
+<video width="400" controls="" autoplay="">
+    <source src="/assets/2025-04-14/cli_demo.mp4" type="video/mp4" />
+</video>
+
+<div style="margin-top: 4rem;"></div>
+
+<p>2-digit addition problems are simple enough that, given enough time, users with enough basic arithmetic experience could acheive close to 100% accuracy. So, a time limit of 5 seconds (ajustable as configuration) was enforced to ensure that the user would get enough questions wrong. I chose to, for now, not cut off the question when the time runs out - the full time to complete a question could be useful data! Instead, I silently marked the question incorrect if it wasn’t answered within the time limit.</p>
+
+<p>The data for collected questions is structured like this:</p>
+
+<div style="margin-top: 4rem;"></div>
+
+<p><img src="/assets/2025-04-14/sample_data.png" alt="sample data" /></p>
+
+<div style="margin-top: 4rem;"></div>
+
+<p>My training framework uses the concept of “Trainers” to define classes that create parameters for questions. In this case, I have <code class="language-plaintext highlighter-rouge">AdditionTrainer</code> classes that output two parameters, which are the first and second operand of the addition problem. To create completely random questions, I always provide a randomized trainer to serve as a foundation for more sophisticated trainers.</p>
+
+<p>The next thing I needed to do was collect some data so that I could attempt to make inferences based on my own response behavior.</p>
+
+<h3 id="gathering-data">Gathering Data</h3>
+
+<p>Using the randomized trainer, I completed the somewhat grueling (but educational) process of grinding out hundreds of two-digit addition questions.</p>
+
+<p>How many should I answer? Here we get into the idea of “parameter space” - how many possible two-digit addition questions are there? Including zero, that’s 100 x 100 for 10,000 possible addition questions. So, even in a relatively simple scenario, the number of possible questions is high enough that I can’t explore the entire space in a reasonable amount of time (which is good, or this wouldn’t be interesting!).</p>
+
+<p>I decided to gather 360 answers - this was based more off of my own endurance and what I figured to be a rough representative sample for 10,000 data points than anything statistically premeditated. Turns out (in retrospect) that gets us pretty close to 95% confidence, which sounds great to me for a demo!</p>
+
+<p>Here’s the result of my training:</p>
+
+<div style="margin-top: 4rem;"></div>
+
+<p><img src="/assets/2025-04-14/random_results.png" alt="sample data" /></p>
+
+<div style="margin-top: 4rem;"></div>
+
+<p>The results lined up well with intuition. The biggest cluster of incorrect questions occurs where there are two large operands. Answers at the low end of either axis are likely to be correct (e.g. <code class="language-plaintext highlighter-rouge">0 + 99</code> is easy). What kind of inferences could I make from this data?</p>
+
+<h3 id="developing-a-modeling-strategy">Developing a Modeling Strategy</h3>
+
+<p>First, I had to address the question of how exactly to generate questions that the “user will get correct 80% of the time.” How could this be broken down into a data problem?</p>
+
+<p>My (naive) initial thought was to give the “correct” / “incorrect” (<code class="language-plaintext highlighter-rouge">1</code> or <code class="language-plaintext highlighter-rouge">0</code>) as my input (<code class="language-plaintext highlighter-rouge">X</code>) value, and have it produces two <code class="language-plaintext highlighter-rouge">Y</code> values: <code class="language-plaintext highlighter-rouge">operand_1</code> and <code class="language-plaintext highlighter-rouge">operand_2</code>. I could then give a fractional input value of <code class="language-plaintext highlighter-rouge">.8</code> as an input to represent an 80% chance of the question being correct, and get two operands that fit to this number as an output.</p>
+
+<p>While this lined up with the verbal expression of the problem, just a little though showed me this approach is quite backwards - all of the predictive information is on the side of the operands - what pattern could possibly be inferred from “correct” / “incorrect” alone that could expand out to two operands? Also, there’s no room for variation here - how would I generate a <em>unique</em> sequence of operands that all have that same 80% chance of the user getting correct?</p>
+
+<p>My next idea was a little different: keep riffing on the random operand generation. Instead of creating operands that attempt to hit some target value, I can randomly generate operands, <em>then</em> score those. My output would be some value between 0 and 1: the modeled chance a user would get a question with those two operands correct.</p>
+
+<p>For example: <code class="language-plaintext highlighter-rouge">operand_1</code> is randomly assigned <code class="language-plaintext highlighter-rouge">14</code>, and <code class="language-plaintext highlighter-rouge">operand_2</code> is <code class="language-plaintext highlighter-rouge">37</code>. Those two operands go into a model, and out comes, say, <code class="language-plaintext highlighter-rouge">.67</code>. This predicts a 67% chance the user gets the question <code class="language-plaintext highlighter-rouge">14 + 37 = ?</code> correct within 5 seconds: too difficult! What I could then do is just keep generating parameters and scoring them until I get a result of <code class="language-plaintext highlighter-rouge">.8</code>. Well, not exactly - that wasn’t very precise in itself! Instead, a range - such as <code class="language-plaintext highlighter-rouge">.75</code> to <code class="language-plaintext highlighter-rouge">.85</code> made a good approximation for my purposes.</p>
+
+<h3 id="time-to-model">Time to Model!</h3>
+
+<p>Now that I had a plan, it was time to try it out with a model. Something I learned from years of working with data scientists is to always start with a linear model, then try and beat that.</p>
+
+<p>Because I intended to eventually try to apply a deep learning model to this problem, I implemented the linear model with Keras. For those interested, here’s the setup I used to achieve a linear model, using the <code class="language-plaintext highlighter-rouge">mean_squared_error</code> loss function:</p>
+
+<div style="margin-top: 4rem;"></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">model</span> <span class="o">=</span> <span class="n">tf</span><span class="p">.</span><span class="n">keras</span><span class="p">.</span><span class="nc">Sequential</span><span class="p">([</span>
+        <span class="n">tf</span><span class="p">.</span><span class="n">keras</span><span class="p">.</span><span class="n">layers</span><span class="p">.</span><span class="nc">Input</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,)),</span>
+        <span class="n">normalizer</span><span class="p">,</span>
+        <span class="n">tf</span><span class="p">.</span><span class="n">keras</span><span class="p">.</span><span class="n">layers</span><span class="p">.</span><span class="nc">Dense</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="sh">'</span><span class="s">relu</span><span class="sh">'</span><span class="p">)</span>
+<span class="p">])</span>
+
+<span class="n">model</span><span class="p">.</span><span class="nf">compile</span><span class="p">(</span>
+    <span class="n">optimizer</span><span class="o">=</span><span class="sh">'</span><span class="s">adam</span><span class="sh">'</span><span class="p">,</span>
+    <span class="n">loss</span><span class="o">=</span><span class="sh">'</span><span class="s">mean_squared_error</span><span class="sh">'</span><span class="p">,</span>
+    <span class="n">metrics</span><span class="o">=</span><span class="p">[</span><span class="sh">'</span><span class="s">accuracy</span><span class="sh">'</span><span class="p">]</span>
+<span class="p">)</span>
+
+<span class="n">history</span> <span class="o">=</span> <span class="n">model</span><span class="p">.</span><span class="nf">fit</span><span class="p">(</span>
+    <span class="n">train_features</span><span class="p">,</span> <span class="n">train_label</span><span class="p">,</span>
+    <span class="n">epochs</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>
+    <span class="n">batch_size</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+    <span class="n">validation_data</span><span class="o">=</span><span class="p">(</span><span class="n">test_features</span><span class="p">,</span> <span class="n">test_label</span><span class="p">),</span>
+    <span class="n">verbose</span><span class="o">=</span><span class="mi">1</span>
+<span class="p">)</span>
+</code></pre></div></div>
+
+<div style="margin-top: 4rem;"></div>
+
+<p>This model resulted in an accuracy of about 70% when run against the test data. Unfortunately, I didn’t preserve sample outputs from this data. However, I do I have fun visualization to show what pattern the model found:</p>
+
+<div style="margin-top: 4rem;"></div>
+
+<p><img src="/assets/2025-04-14/linear_predictions.png" alt="linear predictions" /></p>
+
+<div style="margin-top: 4rem;"></div>
+
+<p>What we are looking at here is the original random data used to train the linear model, superimposed on a <em>heatmap</em> of the model’s predictions at every point in the space of all possible <code class="language-plaintext highlighter-rouge">operand_1</code> and <code class="language-plaintext highlighter-rouge">operand_2</code> combinations.</p>
+
+<p>Where this background heatmap is more blue, the user (me) is predicted to be more likely to get the question wrong. For example, the top right corner of the chart represents a prediction in the neighborhood of me having a 20% chance of getting that question correct. Conversely, the very green bottom left of the chart predicts that I will almost certainly get it correct.</p>
+
+<p>The red line represents my “sweet spot” - the exact point where the model predicts the user will have an 80% chance of getting the question correct. The <code class="language-plaintext highlighter-rouge">LinearTrainer</code> would thus produce a cloud of randomized questions, all falling within +/-5% of this red line.</p>
+
+<p>This is an interesting scenario - while the accuracy of 70% does a decent job of generating questions that meet my criteria, it reveals a criteria of mine that I had internalized, but did not define: that the selected questions also <em>represent as broad a portion of the parameter space as possible.</em></p>
+
+<p>While this model technically does the job, I am only able to get operand combinations that fall near the red line, like <code class="language-plaintext highlighter-rouge">41 + 21</code> or <code class="language-plaintext highlighter-rouge">32 + 33</code>. High value operand combinations like <code class="language-plaintext highlighter-rouge">80 + 90</code> would be ignored completely. Even worse, the model overstates the difficulty of combinations like <code class="language-plaintext highlighter-rouge">60 + 0</code> or <code class="language-plaintext highlighter-rouge">1 + 55</code>, marking them as at the 80% line when they are almost certain to be an accuracy of 95%+.</p>
+
+<p>Could a non-linear model do a better job?</p>
+
+<h3 id="deep-learning-model">Deep Learning Model</h3>
+
+<p>Next up, I wanted to try a small neural net to see if I could better capture the non-linear elements of the data.</p>
+
+<p>I decided to use binary cross-entropy as my loss function, which is supposed to work well with binary classification problems like this one. A lot of experimentation showed me that adding more layers or units did not achieve too much for my problem - probably due to the low amount of data.</p>
+
+<p>For those interested, here again is the setup:</p>
+
+<div style="margin-top: 4rem;"></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">model</span> <span class="o">=</span> <span class="n">tf</span><span class="p">.</span><span class="n">keras</span><span class="p">.</span><span class="nc">Sequential</span><span class="p">([</span>
+    <span class="n">tf</span><span class="p">.</span><span class="n">keras</span><span class="p">.</span><span class="n">layers</span><span class="p">.</span><span class="nc">Input</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,)),</span>
+    <span class="n">normalizer</span><span class="p">,</span>
+    <span class="n">tf</span><span class="p">.</span><span class="n">keras</span><span class="p">.</span><span class="n">layers</span><span class="p">.</span><span class="nc">Dense</span><span class="p">(</span><span class="n">units</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="sh">"</span><span class="s">relu</span><span class="sh">"</span><span class="p">),</span>
+    <span class="n">tf</span><span class="p">.</span><span class="n">keras</span><span class="p">.</span><span class="n">layers</span><span class="p">.</span><span class="nc">Dense</span><span class="p">(</span><span class="n">units</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="sh">"</span><span class="s">sigmoid</span><span class="sh">"</span><span class="p">)</span>
+<span class="p">])</span>
+
+<span class="n">model</span><span class="p">.</span><span class="nf">compile</span><span class="p">(</span>
+    <span class="n">optimizer</span><span class="o">=</span><span class="n">keras</span><span class="p">.</span><span class="n">optimizers</span><span class="p">.</span><span class="nc">Adam</span><span class="p">(</span><span class="n">learning_rate</span><span class="o">=</span><span class="mf">0.001</span><span class="p">),</span>
+    <span class="n">loss</span><span class="o">=</span><span class="n">keras</span><span class="p">.</span><span class="n">losses</span><span class="p">.</span><span class="nc">BinaryCrossentropy</span><span class="p">(),</span>
+    <span class="n">metrics</span><span class="o">=</span><span class="p">[</span><span class="n">keras</span><span class="p">.</span><span class="n">metrics</span><span class="p">.</span><span class="nc">BinaryAccuracy</span><span class="p">()]</span>
+<span class="p">)</span>
+
+<span class="n">history</span> <span class="o">=</span> <span class="n">model</span><span class="p">.</span><span class="nf">fit</span><span class="p">(</span>
+    <span class="n">train_features</span><span class="p">,</span> <span class="n">train_label</span><span class="p">,</span>
+    <span class="n">epochs</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>
+    <span class="n">batch_size</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+    <span class="n">validation_data</span><span class="o">=</span><span class="p">(</span><span class="n">test_features</span><span class="p">,</span> <span class="n">test_label</span><span class="p">),</span>
+    <span class="n">verbose</span><span class="o">=</span><span class="mi">1</span>
+<span class="p">)</span>
+</code></pre></div></div>
+
+<div style="margin-top: 4rem;"></div>
+
+<p>And here are the results, using the same heat map view as the linear model:</p>
+
+<div style="margin-top: 4rem;"></div>
+
+<p><img src="/assets/2025-04-14/binary_predictions.png" alt="binary predicitons" /></p>
+
+<div style="margin-top: 4rem;"></div>
+
+<p>The gradations between correct/incorrect are harder to see here, but already it is apparent that a more organic pattern is being captured with the neural net.</p>
+
+<p>To help clear make the patterns in the heat map more visible, I customized the heatmap plot colors. In this new plot, I have made values close to the 80% threshold white, so that this boundary (similar to the 80% red line in the linear plot) is easy to see:</p>
+
+<div style="margin-top: 4rem;"></div>
+
+<p><img src="/assets/2025-04-14/binary_predictions_fancy.png" alt="binary predicitons fancy" /></p>
+
+<div style="margin-top: 4rem;"></div>
+
+<p>Contrasted to the linear model, we can see here that the NN was able to better handle the cases along the axis: <code class="language-plaintext highlighter-rouge">0 + 100</code> and <code class="language-plaintext highlighter-rouge">100 + 0</code> are properly categorized as a 90% + chance of being correct, for example, where the linear model marked these as more difficult.</p>
+
+<p>In the following graphic, we can see what problems were genereated by the <code class="language-plaintext highlighter-rouge">NeuralNetTrainer</code> and my answers to them:</p>
+
+<div style="margin-top: 4rem;"></div>
+
+<p><img src="/assets/2025-04-14/binary_predictions_generated_fancy.png" alt="binary predictions generated" /></p>
+
+<div style="margin-top: 4rem;"></div>
+
+<p>This is, like the linear model, technically working as intended! I’m getting roughly 80% of the questions correct.</p>
+
+<p>However, there are still some problems. First, the NN model only manages to deliver the same 70% accuracy as the linear model! So while it is giving slightly more diverse questions by following a non-linear contour, it doesn’t actually manage to classify more accurately. Why this is, I am not sure; perhaps linear model’s overestimation of difficulty near low numbers is made up for by the difficulty of other points being underestimated.</p>
+
+<p>Second, this model still delivers a very unsatisfying distribution of operand combinations. It’s clear from the sampled model output above that we’re only ever going to get problems that use operand combinations near that white 80% region. The entire rest of the parameter space is ignored! Surely there are a multitude of combinations in those deep green and blue portions of the space that are, in reality, near the 80% mark.</p>
+
+<h3 id="feature-engineering">Feature Engineering!</h3>
+
+<p>Eventually I started to realize that my formulation of the problem might be holding my modeling back. I had been feeding the model <em>numbers</em>, but was that really the right modality? When we add, we operate at a digit level. Adding <code class="language-plaintext highlighter-rouge">89 + 12</code>, we’re all grabbing that <code class="language-plaintext highlighter-rouge">9</code> and <code class="language-plaintext highlighter-rouge">2</code> and summing them, carrying over the <code class="language-plaintext highlighter-rouge">1</code>. What makes most 2-digit problems any challenge to solve in 5 seconds is really the <em>carry</em>. It’s why <code class="language-plaintext highlighter-rouge">68 + 37</code> is harder than <code class="language-plaintext highlighter-rouge">68 + 31</code>; the latter has no carry. And it’s what makes certain problems quick despite their size, like <code class="language-plaintext highlighter-rouge">75 + 35</code> or <code class="language-plaintext highlighter-rouge">37 + 33</code>, is that their ones-columns “click” together into 10.</p>
+
+<p>As mentioned earlier, I have no intention of handling these cases manually; I need the model to pick up these patterns on its own. The only way to do that is to make the model <em>digit aware</em>. Instead of feeding the model numbers, I’m feeding it digits!</p>
+
+<p>Thus, instead of <code class="language-plaintext highlighter-rouge">operand_1</code> and <code class="language-plaintext highlighter-rouge">operand_2</code>, I re-engineered those features into <code class="language-plaintext highlighter-rouge">operand_1_digit_1</code>, <code class="language-plaintext highlighter-rouge">operand_1_digit_2</code>, <code class="language-plaintext highlighter-rouge">operand_2_digit_1</code>, and <code class="language-plaintext highlighter-rouge">operand_2_digit_2</code>. <code class="language-plaintext highlighter-rouge">35</code> and <code class="language-plaintext highlighter-rouge">75</code> becomes <code class="language-plaintext highlighter-rouge">3</code>, <code class="language-plaintext highlighter-rouge">5</code>, <code class="language-plaintext highlighter-rouge">7</code>, and <code class="language-plaintext highlighter-rouge">5</code>.</p>
+
+<p>Instead of re-architecting the stored data into digits, I short-cutted to just transforming the numbers into digits right before they were fed into the model. As a fun result, I can still use the same heatmap to plot the 4-parameter input space in two dimensions. Starting again with a linear model:</p>
+
+<div style="margin-top: 4rem;"></div>
+
+<p><img src="/assets/2025-04-14/digits_linear.png" alt="digits linear" /></p>
+
+<div style="margin-top: 4rem;"></div>
+
+<p>As someone newer to modeling, this was a <em>fascinating</em> visualization! I now had a grid of grids, each mini-grid serving as a model for every increment of 10. With the expanded features, the model now picks up on the pattern that higher ones-column digits make the problem harder, independently of the tens-column digits. For example, <code class="language-plaintext highlighter-rouge">29 + 19</code> is properly predicted as difficult, while <code class="language-plaintext highlighter-rouge">25 + 25</code> is solidly easy.</p>
+
+<p>Now, with predictions again falling along the white regions of this space, the variation of outputted questions is much higher!</p>
+
+<p>The model’s accuracy is also respectably higher: about 75%, a solid improvement.</p>
+
+<p>Finally, what about combining the digit-based parameters with a neural net?</p>
+
+<div style="margin-top: 4rem;"></div>
+
+<p><img src="/assets/2025-04-14/digits_nn.png" alt="digits nn" /></p>
+
+<div style="margin-top: 4rem;"></div>
+
+<p>While I got the same organic curve in each of these “mini-plots” that probably gives more varied outputs than the linear, again I’m failing to beat the linear model, tying it with 75%. Is this some sort of convergence due to the low amount of data, or the simplicity of the problem? I’m not sure, but it’s something I’ll look out for in future modeling.</p>
+
+<p>There are clearly improvements to seek here - sticking out to me is that sparse cluster of green dots in the top right, which did not manage to get that region categorized as more likely to be answered correctly.</p>
+
+<h1 id="further-improvement">Further Improvement</h1>
+
+<p>Getting more data is always a solution, and would probably help my modeling accuracy more than anything; however, this case represents a very minimal parameter space. These problems will only get more complex, and how efficient would it be to gather more data than the 360 / 10,000 ratio I’ve gotten here?</p>
+
+<p>During an earlier iteration of the project, I experimented with training the model, answering questions from the new model, then re-training on that. While I moved on to training from purely random data for experimental consistentcy, there is probably value in re-training from modeled data to reduce the parameter space and gather more information around relevant spaces.</p>
+
+<p>The most useful dimension to add that I have immediate access to is time. This would give the model another dimension of difficulty to classify with instead of just the digits. This could compensate for easy questions I got wrong due to hasty answering, and give more difficulty to questions I got right just barely in time.</p>
+
+<p>Another potentially useful dimension is the question’s time or position within a particular sessions and sets. I didn’t get too much into it in this post, but questions are delivered in “sets” of 10 (adjustable) and within the context of a sitting - a session. As a user is likely to get fatigued as the session goes on, it is probably useful to track what position a question is within a set or session, either by time or an ordinal position (e.g. question #1, #2, etc.). This is a practice I saw used by default in fMRI studies when I was working for UNC, so I know it is an imporant feature to eventually control for.</p>
+
+<h3 id="future-work">Future Work</h3>
+
+<ul>
+  <li>Expanding to handle more than two operands, other operators like <code class="language-plaintext highlighter-rouge">-</code>, <code class="language-plaintext highlighter-rouge">*</code>, and <code class="language-plaintext highlighter-rouge">/</code>, and combinations of both</li>
+  <li>Producing problems that use multiple operands, operators - will need order of operations handling</li>
+  <li>Updating the model dynamically as the user takes the quiz; every 10 questions, or even after every question</li>
+  <li></li>
+</ul>
+
+  </div><a class="u-url" href="/2025/04/14/two_digit_addition_1.html" hidden></a>
+</article>
+
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/"></data>
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">wasciutto</h2>
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+        <ul class="contact-list">
+          <li class="p-name">wasciutto</li><li><a class="u-email" href="mailto:wjasciutto@gmail.com">wjasciutto@gmail.com</a></li></ul>
+      </div>
+
+      <div class="footer-col footer-col-2"><ul class="social-media-list"><li><a href="https://github.com/wasciutto"><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#github"></use></svg> <span class="username">wasciutto</span></a></li></ul>
+</div>
+
+      <div class="footer-col footer-col-3">
+        <p>Just a small site for posting things I&#39;ve been working on</p>
+      </div>
+    </div>
+
+  </div>
+
+</footer>
+</body>
+
+</html>

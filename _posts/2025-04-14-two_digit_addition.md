@@ -228,7 +228,7 @@ While I got the same organic curve in each of these "mini-plots" that probably g
 There are clearly improvements to seek here - sticking out to me is that sparse cluster of green dots in the top right, which did not manage to get that region categorized as more likely to be answered correctly. 
 
 
-# Further Improvement
+# Further Model Improvement
 
 Getting more data is always a solution, and would probably help my modeling accuracy more than anything; however, this case represents a very minimal parameter space. These problems will only get more complex, and how efficient would it be to gather more data than the 360 / 10,000 ratio I've gotten here?
 
@@ -239,9 +239,10 @@ The most useful dimension to add that I have immediate access to is time. This w
 Another potentially useful dimension is the question's time or position within a particular sessions and sets. I didn't get too much into it in this post, but questions are delivered in "sets" of 10 (adjustable) and within the context of a sitting - a session. As a user is likely to get fatigued as the session goes on, it is probably useful to track what position a question is within a set or session, either by time or an ordinal position (e.g. question #1, #2, etc.). This is a practice I saw used by default in fMRI studies when I was working for UNC, so I know it is an imporant feature to eventually control for.
 
 
-### Future Work
+### Future Plans
 
-- Expanding to handle more than two operands, other operators like `-`, `*`, and `/`, and combinations of both
-- Producing problems that use multiple operands, operators - will need order of operations handling
+- Expanding to handle more than two operands / one operator
+- Supporting other operators like `-`, `*`, and `/`, and combinations of both
 - Updating the model dynamically as the user takes the quiz; every 10 questions, or even after every question
-- 
+- Tracking data from multiple users
+- Non-math trainers - I have a prototype for musical ear training using the same framework

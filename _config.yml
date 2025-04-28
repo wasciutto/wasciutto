@@ -31,8 +31,8 @@ permalink: pretty
 theme: minima
 header_pages:
   - index.md
-  - blue_dusk.md
-  - about.markdown
+#  - blue_dusk.md
+#  - about.markdown
 plugins:
   - jekyll-feed
 

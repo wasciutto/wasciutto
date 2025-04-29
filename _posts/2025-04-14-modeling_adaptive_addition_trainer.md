@@ -1,6 +1,6 @@
 ---
 layout: post
-title: Modeling an Adapative Addition Trainer
+title: Model Development for an Adapative Addition Trainer
 ---
 
 About three years ago, I heard about some findings from a [Nature Communciations paper](https://www.nature.com/articles/s41467-019-12552-4) proposing that the optimal success rate for any learning task is about 85%.

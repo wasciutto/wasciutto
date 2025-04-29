@@ -5,7 +5,7 @@ title: Model Development for an Adapative Addition Trainer
 
 About three years ago, I heard about some findings from a [Nature Communciations paper](https://www.nature.com/articles/s41467-019-12552-4) proposing that the optimal success rate for any learning task is about 85%.
 
-This inspired me to start building a training application framework that operates on this principle, randomly generating questions that the user would get right about 85% of the time. The application would utilize a model built from previously answered questions to generate new problems that meet this threshold, continuously adapting to a user's answers. My idea was that staying within this "sweetspot" of difficulty would keep a user more engaged with the trainer.
+This inspired me to start building a training application that operates on this principle, randomly generating questions that the user would get right about 85% of the time. The application would utilize a model built from previously answered questions to generate new problems that meet this threshold, continuously adapting to a user's answers. My idea was that staying within this "sweetspot" of difficulty would keep a user more engaged with the trainer.
 
 To keep things simple, I decided to make the first iteration of my application a 2-digit addition trainer, with the goal of generating single operator addition problems that the user had an 85% chance of getting correct. For example, `31 + 45`, or `95 + 23`.
 

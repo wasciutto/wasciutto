@@ -125,17 +125,17 @@ Where this background heatmap is more blue, the user (me) is predicted to be mor
 
 The red line represents my "sweet spot" - the exact point where the model predicts the user will have an 80% success rate. The `LinearTrainer` would thus produce a cloud of randomized questions, all falling within +/-5% of this red line.
 
-This is an interesting scenario - while the model's accuracy of 70% does a decent job of generating questions that meet my criteria, it reveals a criteria of mine that I had internalized, but did not defined: that the selected questions *represent as broad a portion of the parameter space as possible.*
+This is an interesting scenario - while the model's accuracy of 70% does a decent job of generating questions that meet my criteria, it reveals a criteria of mine that I had internalized, but had not defined: that the selected questions *represent as broad a portion of the parameter space as possible.*
 
-While this model technically produces the correct difficulty level, I am only able to get operand combinations that fall near the red line, like `41 + 21` or `32 + 33`. High value operand combinations like `80 + 90` would be ignored completely. Even worse, the model overstates the difficulty of combinations like `60 + 0` or `1 + 55`, marking them at 80%, when they are almost certain to be at a 95%+ success rate.
+While this model technically produces the correct difficulty level, I am only able to get operand combinations that fall near the red line, like `41 + 21` or `32 + 33`. High value operand combinations like `80 + 90` would be ignored completely. Even worse, the model overstates the difficulty of combinations like `60 + 0` or `1 + 55`, marking them an 80% success rate, when they are almost certain to be at a 95%+.
 
 Could a non-linear model do a better job?
 
-### Deep Learning Model
+### Neural Net Model
 
 Next up, I wanted to try a small neural net to see if I could better capture the non-linear elements of the data.
 
-I decided to use binary cross-entropy as my loss function, which is supposed to work well with binary classification problems like this one. A lot of experimentation showed me that adding more layers or units did not achieve too much for my problem - probably due to the low amount of data.
+I decided to use binary cross-entropy as my loss function, which is supposed to work well with binary classification problems like this one. A lot of experimentation showed me that adding more layers or units did not achieve too much for my problem - probably due to the low amount of data. As a result, I used a simple two layer approach: the first with 8 units, and the second to consolidate them into a single output.
 
 For those interested, here again is the setup:
 
@@ -176,7 +176,7 @@ And here are the results, using the same heat map view as the linear model:
 
 The gradations between correct/incorrect are harder to see here, but already it is apparent that a more organic pattern is being captured with the neural net.
 
-To help clear make the patterns in the heat map more visible, I customized the heatmap plot colors. In this new plot, I have made values close to the 80% threshold white, so that this boundary (similar to the 80% red line in the linear plot) is easy to see:
+To help clear make the patterns in the heat map more visible, I customized the heatmap plot colors. In this new plot, I have made values close to the 80% success rate threshold white, so that this boundary (similar to the 80% red line in the linear plot) is easy to see:
 
 <div style="margin-top: 4rem;"></div>
 
@@ -184,7 +184,7 @@ To help clear make the patterns in the heat map more visible, I customized the h
 
 <div style="margin-top: 4rem;"></div>
 
-Contrasted to the linear model, we can see here that the NN was able to better handle the cases along the axis: `0 + 100` and `100 + 0` are properly categorized as a 90% + chance of being correct, for example, where the linear model marked these as more difficult.
+Contrasted to the linear model, we can see here that the NN was able to better handle the cases along the axis: `0 + 100` and `100 + 0` are properly categorized as a 90% + success rate, for example, where the linear model marked these as more difficult.
 
 In the following graphic, we can see what problems were genereated by the `NeuralNetTrainer` and my answers to them:
 
@@ -194,21 +194,21 @@ In the following graphic, we can see what problems were genereated by the `Neura
 
 <div style="margin-top: 4rem;"></div>
 
-This is, like the linear model, technically working as intended! I'm getting roughly 80% of the questions correct.
+This is, like the linear model, technically working as intended! I'm getting roughly 80% of the questions correct when testing the application [^3].
 
-However, there are still some problems. First, the NN model only manages to deliver the same 70% accuracy as the linear model! So while it is giving slightly more diverse questions by following a non-linear contour, it doesn't actually manage to classify more accurately. Why this is, I am not sure; perhaps linear model's overestimation of difficulty near low numbers is made up for by the difficulty of other points being underestimated.
+However, there are still some problems. First, the NN model only manages to deliver the same 70% accuracy as the linear model! So while it is giving slightly more diverse questions by following a non-linear contour, it doesn't actually manage to classify more accurately. Why this is, I am not sure; perhaps the linear model's overestimation of difficulty near low numbers is made up for by the difficulty of other points being underestimated.
 
-Second, this model still delivers a very unsatisfying distribution of operand combinations. It's clear from the sampled model output above that we're only ever going to get problems that use operand combinations near that white 80% region. The entire rest of the parameter space is ignored! Surely there are a multitude of combinations in those deep green and blue portions of the space that are, in reality, near the 80% mark.
+Second, this model still delivers a very unsatisfying distribution of operand combinations. It's clear from the sampled model output above that we're only ever going to get problems that use operand combinations near that white 80% region. The entire rest of the parameter space is ignored! Surely there are a multitude of combinations in those deep green and blue portions of the space that are, in reality, near the 80% success rate.
 
 ### Feature Engineering!
 
-Eventually I started to realize that my formulation of the problem might be holding my modeling back. I had been feeding the model *numbers*, but was that really the right modality? When we add, we operate at a digit level. Adding `89 + 12`, we're all grabbing that `9` and `2` and summing them, carrying over the `1`. What makes most 2-digit problems any challenge to solve in 5 seconds is really the *carry*. It's why `68 + 37` is harder than `68 + 31`; the latter has no carry. And it's what makes certain problems quick despite their size, like `75 + 35` or `37 + 33`, is that their ones-columns "click" together into 10.
+Eventually I started to realize that my formulation of the problem might be holding my modeling back. I had been feeding the model *numbers*, but was that really the right modality? When we add, we operate at the level of digits. Adding `89 + 12`, we're all grabbing that `9` and `2` and summing them, carrying over the `1`. What makes most 2-digit problems any challenge to solve in 5 seconds is really the *carry*. It's why `68 + 37` is harder than `68 + 31`; the latter has no carry. And what makes certain problems easier despite their size, like `75 + 35` or `37 + 33`, is that their ones-columns "click" together into 10.
 
-As mentioned earlier, I have no intention of handling these cases manually; I need the model to pick up these patterns on its own. The only way to do that is to make the model *digit aware*. Instead of feeding the model numbers, I'm feeding it digits!
+As mentioned earlier, I have no intention of handling these cases manually; I want the model to pick up these patterns on its own. The only way to do that is to make the model *digit aware*. Instead of feeding the model numbers, I should give it the digits!
 
-Thus, instead of `operand_1` and `operand_2`, I re-engineered those features into `operand_1_digit_1`, `operand_1_digit_2`, `operand_2_digit_1`, and `operand_2_digit_2`. `35` and `75` becomes `3`, `5`, `7`, and `5`.
+Thus, instead of `operand_1` and `operand_2`, I re-engineered those features into `operand_1_digit_1`, `operand_1_digit_2`, `operand_2_digit_1`, and `operand_2_digit_2`. `35` and `75` becomes `3`, `5`, `7`, and `5` [^4].
 
-Instead of re-architecting the stored data into digits, I short-cutted to just transforming the numbers into digits right before they were fed into the model. As a fun result, I can still use the same heatmap to plot the 4-parameter input space in two dimensions. Starting again with a linear model:
+Instead of re-architecting the stored data into digits, I simply added a transformation function that converts the numbers into digits right before they are fed into the model. A fun result of this is I can still use the same heatmap to plot this new, 4-parameter input space in two dimensions. Starting again with a linear model:
 
 <div style="margin-top: 4rem;"></div>
 
@@ -216,7 +216,7 @@ Instead of re-architecting the stored data into digits, I short-cutted to just t
 
 <div style="margin-top: 4rem;"></div>
 
-As someone newer to modeling, this was a *fascinating* visualization! I now had a grid of grids, each mini-grid serving as a model for every increment of 10. With the expanded features, the model now picks up on the pattern that higher ones-column digits make the problem harder, independently of the tens-column digits. For example, `29 + 19` is properly predicted as difficult, while `25 + 25` is solidly easy.
+As someone newer to modeling, this was a *fascinating* visualization! I now had a grid of grids, each square serving as a mini-model for every increment of 10. With the expanded features, the model now picks up on the pattern that higher ones-column digits make the problem harder, independently of the tens-column digits. For example, `29 + 19` is properly predicted as difficult, while `25 + 25` is solidly easy.
 
 Now, with predictions again falling along the white regions of this space, the variation of outputted questions is much higher!
 
@@ -230,22 +230,22 @@ Finally, what about combining the digit-based parameters with a neural net?
 
 <div style="margin-top: 4rem;"></div>
 
-While I got the same organic curve in each of these "mini-plots" that probably gives more varied outputs than the linear, again I'm failing to beat the linear model, tying it with 75%. Is this some sort of convergence due to the low amount of data, or the simplicity of the problem? I'm not sure, but it's something I'll look out for in future modeling.
+While I got the same organic curve in each of these "mini-plots" that probably gives more varied outputs than the linear, again I'm failing to beat the linear model, tying it with 75% accuracy. Is this some sort of convergence due to the low amount of data, or perhaps the sheer simplicity of the problem? I'm not sure, but it's something I'll look out for in future modeling.
 
-There are clearly improvements to seek here - sticking out to me is that sparse cluster of green dots in the top right, which did not manage to get that region categorized as more likely to be answered correctly. 
+There are clearly improvements to seek here - sticking out to me is that sparse cluster of green point in the top right, which did not manage to get that region categorized as a higher success rate. 
 
 
 ### Ideas for Model Improvement
 
-Getting more data is always a solution, and would probably help my modeling accuracy more than anything; however, this case represents a very minimal parameter space. These problems will only get more complex, and how efficient would it be to gather more data than the 360 / 10,000 ratio I've gotten here?
+Getting more data is always a solution (it's quite emphatically the first thing Chollet suggests), and would probably help my modeling accuracy more than anything; however, this case represents a very minimal parameter space. These problems will only get more complex, and how efficient would it be to gather more data than the 360 / 10,000 ratio I've gotten here?
 
 During an earlier iteration of the project, I experimented with training the model, answering questions from the new model, then re-training on that. While I moved on to training from purely random data for experimental consistentcy, there is probably value in re-training from modeled data to reduce the parameter space and gather more information around relevant spaces.
 
 The most useful dimension to add that I have immediate access to is response time. This would give the model another dimension of difficulty to classify with instead of just the digits. This could compensate for easy questions I got wrong due to hasty answering, and give more difficulty to questions I got right just barely in time.
 
-Another potentially useful dimension is the question's time or position within a particular sessions and sets. I didn't get too much into it in this post, but questions are delivered in "sets" of 10 (adjustable) and within the context of a sitting - a session. As a user is likely to get fatigued as the session goes on, it is probably useful to track what position a question is within a set or session, either by time or an ordinal position (e.g. question #1, #2, etc.). This is a practice I saw used by default in fMRI studies when I was working for UNC, so I know it is an imporant feature to eventually control for.
+Another potentially useful dimension is the question's time or position within particular sessions and sets. I didn't get too much into it in this post, but questions are delivered in "sets" of 10 (adjustable) and within the context of a sitting - a session. As a user is likely to get fatigued as the session goes on, it is probably useful to track what position a question is within a set or session, either by time or an ordinal position (e.g. question #1, #2, etc.). This is a practice I saw used by default in fMRI studies during my time in UNC's psychology labs, so I know it is an imporant feature to eventually control for.
 
-Finally, the effect of a user learning the task over time should probably be taken into account; perhaps by using each record's general timestamp. Questions that were marked wrong a relatively long time ago in the answer set would certainly be "stale," not reflecting the user's more practiced arithmetic skills. I would love to eventually get into some timeseries-based modeling, where more recently answered questions are weighted much more heavily than older ones; perhaps experimenting with RNNs or LTSMs.
+Finally, the effect of a user learning this task over time should probably be taken into account; perhaps by using each record's general timestamp. Questions that were marked wrong a relatively long time ago in the answer set would certainly be "stale," not reflecting the user's more practiced arithmetic skills. I would love to eventually get into some timeseries-based modeling, where more recently answered questions are weighted much more heavily than older ones; perhaps experimenting with RNNs or LTSMs.
 
 
 ### Future Plans
@@ -254,11 +254,16 @@ Finally, the effect of a user learning the task over time should probably be tak
 - Supporting other operators like `-`, `*`, and `/`, and combinations of both
 - Updating the model dynamically as the user takes the quiz; every 10 questions, or even after every question
 - Tracking data from multiple users
-- Non-math trainers - I have a prototype for musical ear training using the same framework
+- Non-math trainers - I have a prototype in the works for musical ear training using the same framework
 
 <div style="margin-top: 4rem;"></div>
 
-Thanks for reading! Feel free to share with me any suggestions, comments, feedback, etc. you may have.
+Thanks for reading! 
+
+Feel free to share with me any suggestions, comments, feedback, etc. you may have. I'm still new to modeling, so I would love to know if I'm using any terms inaccurately, am getting some foundational assumptions incorrect, am using models/modeling parameters incorrectly, etc.
+
+You can reach me via email at wjasciutto@gmail.com, or on [LinkedIn](https://www.linkedin.com/in/will-asciutto-973879118/).
+
 
 <div style="margin-top: 4rem;"></div>
 
@@ -266,3 +271,5 @@ Thanks for reading! Feel free to share with me any suggestions, comments, feedba
 
 [^1]: I realized that this solution might be untenable for problems with a larger parameter space, taking too much compute time to hit a score within my defined range. To account for this, I made sure to isolate the parameter generation strategy from the Trainer. This would allow me to, in the future, create a more efficient method for generating parameters to score than random - perhaps through an RL model. For these purposes, I found random generation to be more than adequate.
 [^2]: The method I used here was to leverage `np.meshgrid` to create a matrix of all possible combinations of operands, then feed those into the model. Matplotlib's `imshow` could then render the output matrix as a background image for the grid.
+[^3]: While this output data matches the gradient of the model properly, I'm not sure why it is a little under the white region here: either the generated data is unshooting the range I wanted by a bit, or the color grading is a little off. Will investigate as I move forward.
+[^4]: I put in a good amount of consideration as to whether I should try and still "group" single digits by the number they compose. E.g, grouping together `3` and `5` here. I decided, based on other examples from the Chollet guide, that this wasn't necessary - the model can probably make that inference from order alone. But this is something I need to learn more about.

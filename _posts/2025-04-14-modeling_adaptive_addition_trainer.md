@@ -248,7 +248,7 @@ Another potentially useful dimension is the question's time or position within p
 Finally, the effect of a user learning this task over time should probably be taken into account; perhaps by using each record's general timestamp. Questions that were marked wrong a relatively long time ago in the answer set would certainly be "stale," not reflecting the user's more practiced arithmetic skills. I would love to eventually get into some timeseries-based modeling, where more recently answered questions are weighted much more heavily than older ones; perhaps experimenting with RNNs or LTSMs.
 
 
-### Future Plans
+### Next Steps
 
 - Expanding to handle more than two operands / one operator
 - Supporting other operators like `-`, `*`, and `/`, and combinations of both

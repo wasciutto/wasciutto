@@ -11,7 +11,7 @@ To keep things simple, I decided to make the first iteration of my application a
 
 This might initially seem trivial - why not just scale the numbers up and down according to how many questions the user is getting right? Larger numbers are generally harder to compute. But I wanted a more granular capability - `50 + 50`, for example, uses operands that are larger than `18 + 37`, but nobody would argue that the former is more difficult. 
 
-Sure, I could hand-create rules to account for such scenarios, like "numbers with `0` in the ones column are easier," but I wanted to develop a flexible, scalable method of generating randomized problems for a wide variety of operations without having to hand-build each one. Instead of defining exactly which kind of operands make a subtraction or multiplication problem more or less difficult, I wanted to develop a model to figure that out for me.
+Sure, I could hand-create rules to account for such scenarios, like "numbers with `0` in the ones column are easier," but I wanted to develop a flexible, scalable method of generating randomized problems for a wide variety of operations without having to hand-build each one. Instead of defining exactly which kind of operands make a subtraction or multiplication problem more or less difficult, I wanted to develop a modeling framework to figure that out for me.
 
 ### Basic Application & Data Setup
 
@@ -28,7 +28,7 @@ To keep the focus on the data & modeling, I won't get too much into the design o
 <div style="margin-top: 4rem;"></div>
 
 
-A glaring initial problem is that 2-digit addition problems are simple enough that, given enough time, users with basic arithmetic experience can acheive close to 100% accuracy. To account for this, I added a time constraint of 5 seconds (configurable) to ensure that the user would get enough questions wrong, thus making the goal of 85% accuracy at all possible. I chose to, for the time being, not cut off the question when the time runs out - the full time to complete a question could be useful data! Instead, I silently marked the question as "incorrect" if it wasn't answered within the time limit.
+A glaring initial problem is that 2-digit addition problems are simple enough that, given enough time, users with basic arithmetic experience can acheive close to a 100% success rate. To account for this, I added a time constraint of 5 seconds (configurable) to ensure that the user would get enough questions wrong, thus making the goal of 85% success rate at all possible. I chose to, for the time being, not cut off the question when the time runs out - the full time to complete a question could be useful data! Instead, I silently marked the question as "incorrect" if it wasn't answered within the time limit.
 
 I structured the collected data for answered questions like this:
 
@@ -51,7 +51,7 @@ Next, I needed to collect some data to work with!
 
 Using the `RandomAdditionTrainer`, I completed the somewhat grueling (but educational) process of grinding out hundreds of two-digit addition questions.
 
-How many should I answer? Here we get into the idea of this problem's *parameter space*, which is the answer to the question: what are all of the possible (positive) two-digit addition problems? Including zero, that's 100 x 100, for 10,000 possible addition questions. As you can imagine, that's too many combinations for me to cover in a reasonable amount of time, even for this relatively simple problem. (which is good, or this wouldn't be interesting!).
+How many should I answer? Here we get into the idea of this problem's *parameter space*, which is the answer to the question: what are all of the possible (positive) two-digit addition problems? Including zero, that's 100 x 100 = 10,000 possible addition questions. As you can imagine, that's too many combinations for me to cover in a reasonable amount of time, even for this relatively simple problem. (which is good, or this wouldn't be interesting!).
 
 I decided to gather 360 answers - admittedly, this was based more off of my own stamina than anything statistically premeditated. It turns out (in retrospect) that this gets us pretty close to 95% confidence for representing the population size of 10,000 possible problems, which sounds great to me for a demo!
 
@@ -63,26 +63,27 @@ Here's the result of my training:
 
 <div style="margin-top: 4rem;"></div>
 
-The results lined up well with intuition. The biggest cluster of incorrect questions occured where there are two large operands. Answers at the low end of either axis are likely to be correct (e.g. `0 + 99` is easy). What kind of inferences could I make from this data?
+The scatter plot points should be read as addition problems - the point near x = 0, y = 39, for example, should be read as `0 + 39`. The feedback (correct / incorrect) is given by the point's color.
+
+The results lined up well with my intuition. The biggest cluster of low success rates occured where there are two large operands. Answers at the low end of either axis have high success rates (e.g. `0 + 99` is easy). However, there are also plenty of the expected exceptions to these patterns. What kind of inferences could I make from this data?
 
 ### Developing a Modeling Strategy
 
-First, I had to address the question of how exactly to generate questions that the user would get correct 85% of the time (actually, I misremembered the exact value and used an 80% threshold for the following experiment instead - but close enough). How could this be broken down into a data problem?
+First, I had to address the question of how exactly to generate questions that the user would get correct 85% of the time (actually, I misremembered the exact value and used an 80% threshold for the following experiment instead - but close enough). How could I break this down into a solution?
 
-My (naive) initial thought was to give the "correct" / "incorrect" (`1` or `0`) as my input (`X`) value, and have it produces two `Y` values: `operand_1` and `operand_2`. I could then give a fractional input value of `.8` as an input to represent an 80% chance of the question being correct, and get two operands that fit to this number as an output. 
+My (naive) initial thought was to give the "correct" / "incorrect" value (`1` or `0`) as my input (`X`) value, and have it produce two `Y` values: `operand_1` and `operand_2`. I could then give a fractional input value of `.8` to represent an 80% success rate, and get two operands that fit to this number as an output. 
 
-While this lined up with the verbal expression of the problem, just a little though showed me this approach is quite backwards - all of the predictive information is on the side of the operands - what pattern could possibly be inferred from "correct" / "incorrect" alone that could expand out to two operands? Also, there's no room for variation here - how would I generate a *unique* sequence of operands that all have that same 80% chance of the user getting correct?
+While this lined up with the verbal expression of the problem, just a little thought showed me this approach is quite backwards - all of the predictive information is on the side of the operands - what pattern could possibly be inferred from "correct" / "incorrect" alone that could expand out to two operands? Also, there's no room for variation here - how would I generate a *unique* sequence of operands that all have that same 80% success rate?
 
-My next idea was a little different: keep riffing on the random operand generation. Instead of creating operands that attempt to hit some target value, I can randomly generate operands, *then* score those. My output would be some value between 0 and 1: the modeled chance a user would get a question with those two operands correct. 
+My next idea was a little different: keep riffing on the random operand generation. Instead of creating operands that attempt to hit some target value, I can randomly generate operands, *then* classify those parameters. My output would be some value between 0 and 1: the modeled chance a user would get a question with those two operands correct. 
 
-For example: `operand_1` is randomly assigned `14`, and `operand_2` is `37`. Those two operands go into a model, and out comes, say, `.67`. This predicts a 67% chance the user gets the question `14 + 37 = ?` correct within 5 seconds: too difficult! What I could then do is just keep generating parameters and scoring them until I get a result of `.8`. Well, not exactly - that wasn't very precise in itself! Instead, a range - such as `.75` to `.85` made a good approximation for my purposes.
+For example: `operand_1` is randomly assigned `14`, and `operand_2` is `37`. Those two operands go into a classification model, and out comes, say, `.67`. This predicts a 67% chance the user gets the question `14 + 37 = ?` correct within 5 seconds: too difficult! What I could then do is keep generating parameters and scoring them until I get a result of `.8` (80% success rate). Well, not exactly - that wasn't very precise in itself! Instead, a range - such as `.75` to `.85` made a good approximation [^1].
 
 ### Time to Model!
 
 Now that I had a plan, it was time to try it out with a model. Something I learned from years of working with data scientists is to always start with a linear model, then try and beat that.
 
-
-Because I intended to eventually try to apply a deep learning model to this problem, I implemented the linear model with Keras. For those interested, here's the setup I used to achieve a linear model, using the `mean_squared_error` loss function:
+A goal of mine during this project was to get some practice with building deep learning models, so I implemented the linear model with Keras. I leaned heavily on Francois Chollet's *Deep Learning with Python* for the following modeling work, a book I deeply recommend! For those interested, here's the setup I used to achieve a linear model, using the `mean_squared_error` loss function:
 
 <div style="margin-top: 4rem;"></div>
 
@@ -110,7 +111,7 @@ history = model.fit(
 
 <div style="margin-top: 4rem;"></div>
 
-This model resulted in an accuracy of about 70% when run against the test data. Unfortunately, I didn't preserve sample outputs from this data. However, I do I have fun visualization to show what pattern the model found:
+This model resulted in an accuracy of about 70% when run against the test data. Not bad! Unfortunately, I didn't preserve sample outputs from this data. However, I do I have fun visualization to show what pattern the model found:
 
 <div style="margin-top: 4rem;"></div>
 
@@ -118,15 +119,15 @@ This model resulted in an accuracy of about 70% when run against the test data. 
 
 <div style="margin-top: 4rem;"></div>
 
-What we are looking at here is the original random data used to train the linear model, superimposed on a *heatmap* of the model's predictions at every point in the space of all possible `operand_1` and `operand_2` combinations.
+What we are looking at here is the original scatterplot of the random data used to train the model, superimposed on a *heatmap* of the model's predictions over the entire parameter space [^2].
 
-Where this background heatmap is more blue, the user (me) is predicted to be more likely to get the question wrong. For example, the top right corner of the chart represents a prediction in the neighborhood of me having a 20% chance of getting that question correct. Conversely, the very green bottom left of the chart predicts that I will almost certainly get it correct.
+Where this background heatmap is more blue, the user (me) is predicted to be more likely to get the question wrong. For example, the top right corner of the chart represents a prediction in the neighborhood of me having a 20% chance of getting that question correct. Conversely, the very green bottom left of the chart predicts that I will almost certainly get the question correct.
 
-The red line represents my "sweet spot" - the exact point where the model predicts the user will have an 80% chance of getting the question correct. The `LinearTrainer` would thus produce a cloud of randomized questions, all falling within +/-5% of this red line.
+The red line represents my "sweet spot" - the exact point where the model predicts the user will have an 80% success rate. The `LinearTrainer` would thus produce a cloud of randomized questions, all falling within +/-5% of this red line.
 
-This is an interesting scenario - while the accuracy of 70% does a decent job of generating questions that meet my criteria, it reveals a criteria of mine that I had internalized, but did not define: that the selected questions also *represent as broad a portion of the parameter space as possible.*
+This is an interesting scenario - while the model's accuracy of 70% does a decent job of generating questions that meet my criteria, it reveals a criteria of mine that I had internalized, but did not defined: that the selected questions *represent as broad a portion of the parameter space as possible.*
 
-While this model technically does the job, I am only able to get operand combinations that fall near the red line, like `41 + 21` or `32 + 33`. High value operand combinations like `80 + 90` would be ignored completely. Even worse, the model overstates the difficulty of combinations like `60 + 0` or `1 + 55`, marking them as at the 80% line when they are almost certain to be an accuracy of 95%+.
+While this model technically produces the correct difficulty level, I am only able to get operand combinations that fall near the red line, like `41 + 21` or `32 + 33`. High value operand combinations like `80 + 90` would be ignored completely. Even worse, the model overstates the difficulty of combinations like `60 + 0` or `1 + 55`, marking them at 80%, when they are almost certain to be at a 95%+ success rate.
 
 Could a non-linear model do a better job?
 
@@ -254,3 +255,14 @@ Finally, the effect of a user learning the task over time should probably be tak
 - Updating the model dynamically as the user takes the quiz; every 10 questions, or even after every question
 - Tracking data from multiple users
 - Non-math trainers - I have a prototype for musical ear training using the same framework
+
+<div style="margin-top: 4rem;"></div>
+
+Thanks for reading! Feel free to share with me any suggestions, comments, feedback, etc. you may have.
+
+<div style="margin-top: 4rem;"></div>
+
+### Footnotes
+
+[^1]: I realized that this solution might be untenable for problems with a larger parameter space, taking too much compute time to hit a score within my defined range. To account for this, I made sure to isolate the parameter generation strategy from the Trainer. This would allow me to, in the future, create a more efficient method for generating parameters to score than random - perhaps through an RL model. For these purposes, I found random generation to be more than adequate.
+[^2]: The method I used here was to leverage `np.meshgrid` to create a matrix of all possible combinations of operands, then feed those into the model. Matplotlib's `imshow` could then render the output matrix as a background image for the grid.

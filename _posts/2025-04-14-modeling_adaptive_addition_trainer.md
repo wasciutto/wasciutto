@@ -5,13 +5,13 @@ title: Modeling an Adapative Addition Trainer
 
 About three years ago, I heard about some findings from a [Nature Communciations paper](https://www.nature.com/articles/s41467-019-12552-4) proposing that the optimal success rate for any learning task is about 85%.
 
-This gave me the inspiration to start building a training application framework that operates on this principle, randomly generating problems that the user would get right about 85% of the time. The application would utilize a model built from previously answered questions to generate new problems that meet this threshold. My idea was that staying within this "sweetspot" of difficulty would keep a user more engaged with the trainer.
+This inspired me to start building a training application framework that operates on this principle, randomly generating questions that the user would get right about 85% of the time. The application would utilize a model built from previously answered questions to generate new problems that meet this threshold, continuously adapting to a user's answers. My idea was that staying within this "sweetspot" of difficulty would keep a user more engaged with the trainer.
 
 To keep things simple, I decided to make the first iteration of my application a 2-digit addition trainer, with the goal of generating single operator addition problems that the user had an 85% chance of getting correct. For example, `31 + 45`, or `95 + 23`.
 
-This might initially seem trivial - why not just scale the numbers up and down according to how many questions the user is getting right? Larger numbers are generally harder to compute. But I wanted a more granular capability - `50 + 50`, for example, uses two operands that are larger than `18 + 37`, but nobody would argue the latter is more difficult. 
+This might initially seem trivial - why not just scale the numbers up and down according to how many questions the user is getting right? Larger numbers are generally harder to compute. But I wanted a more granular capability - `50 + 50`, for example, uses operands that are larger than `18 + 37`, but nobody would argue that the former is more difficult. 
 
-Sure, I could hand-create rules, like "numbers with `0` in the ones column are easier," but I wanted to develop a flexible, scalable method of generating randomized problems for a wide variety of operations without having to hand-build each one. What makes a set of operands more difficult to subtract is going to be different from, say, multiplication - and that's well before getting into multi-operand problems!
+Sure, I could hand-create rules to account for such scenarios, like "numbers with `0` in the ones column are easier," but I wanted to develop a flexible, scalable method of generating randomized problems for a wide variety of operations without having to hand-build each one. Instead of defining exactly which kind of operands make a subtraction or multiplication problem more or less difficult, I wanted to develop a model to figure that out for me.
 
 ### Basic Application & Data Setup
 
@@ -28,9 +28,9 @@ To keep the focus on the data & modeling, I won't get too much into the design o
 <div style="margin-top: 4rem;"></div>
 
 
-A glaring initial problem is that 2-digit addition problems are simple enough that, given enough time, users with basic arithmetic experience can acheive close to 100% accuracy. So, a time limit of 5 seconds (ajustable as configuration) was enforced to ensure that the user would get enough questions wrong, and thus make this goal of 80% accuracy at all possible. I chose to, for now, not cut off the question when the time runs out - the full time to complete a question could be useful data! Instead, I silently marked the question as "incorrect" if it wasn't answered within the time limit.
+A glaring initial problem is that 2-digit addition problems are simple enough that, given enough time, users with basic arithmetic experience can acheive close to 100% accuracy. To account for this, I added a time constraint of 5 seconds (configurable) to ensure that the user would get enough questions wrong, thus making the goal of 85% accuracy at all possible. I chose to, for the time being, not cut off the question when the time runs out - the full time to complete a question could be useful data! Instead, I silently marked the question as "incorrect" if it wasn't answered within the time limit.
 
-I structured the data collected for answered questions like this:
+I structured the collected data for answered questions like this:
 
 <div style="margin-top: 4rem;"></div>
 
@@ -40,7 +40,9 @@ I structured the data collected for answered questions like this:
 
 (there's a few extra fields captured too, like timestamps)
 
-My training framework uses classes I named "Trainers" that define how parameters are generated for a particular type of problem template. In this case, I setup an `AdditionTrainer` class with two parameters, which are the first and second operand of the addition problem. Using this as a base, I then created a `RandomAdditionTrainer` class that generates random parameters for the addition problem (in this case, the two operators) The randomized trainer serves as a crucial foundation for more sophisticated trainers.
+This training framework stores the "parameters" used to populate each question that was fed to the user. For example, the question `What is 24 + 19?` is created by combining a question template with corresponding parameters. In this case, the template is `What is {operand_1} + {operand_2}?`. By storing the parameters used to create each question alongside the correct/incorrect feedback, I should have what I need to attempt to predict an answer outcome from given parameters.
+
+The framework uses classes I named "Trainers" that define how parameters are generated for a particular type of problem template. In this case, I setup an `AdditionTrainer` class with two parameters, which are the first and second operand of the addition problem. Using this as a base, I then created a `RandomAdditionTrainer` class that generates random parameters for the addition problem (in this case, the two operators) The randomized trainer serves as a crucial foundation for more sophisticated trainers.
 
 Next, I needed to collect some data to work with!
 
